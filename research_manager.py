@@ -5,7 +5,6 @@ import time
 import re
 import json
 import logging
-import curses
 import signal
 from typing import List, Dict, Set, Optional, Tuple, Union
 from dataclasses import dataclass
@@ -14,9 +13,9 @@ from datetime import datetime
 from io import StringIO
 from colorama import init, Fore, Style
 import select
-import termios
 import tty
 from threading import Event
+import ollama
 from urllib.parse import urlparse
 from pathlib import Path
 
@@ -1479,3 +1478,34 @@ if __name__ == "__main__":
 
     if os.name == 'nt':
         print(f"{Fore.YELLOW}Running on Windows - Some features may be limited{Style.RESET_ALL}")
+
+
+# research_manager.py
+import ollama
+
+def analyze_text(text: str, model: str = "mistral") -> str:
+    """
+    Uses an Ollama model to analyze web content.
+    Extracts product name, summary, and features.
+    """
+    prompt = f"""
+Analyze the following webpage content and extract:
+1. The product or company name.
+2. A short summary of what it does.
+3. The main features or services.
+
+If the text is not about a product or company, say "No relevant data found."
+
+Content:
+{text[:4000]}
+"""
+
+    try:
+        response = ollama.chat(
+            model=model,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response["message"]["content"]
+
+    except Exception as e:
+        return f"Error running Ollama model: {e}"
